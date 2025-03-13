@@ -16,9 +16,8 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
   registerUser: (userData: RegisterUserData) => Promise<void>;
+  logout: () => void;
 };
 
 type RegisterUserData = {
@@ -45,84 +44,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem("retroUser");
-    if (storedUser) {
+    const fetchCurrentUser = async () => {
+      setIsLoading(true);
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+        // In a real app, this would be an API call to your backend
+        // which would return the current Windows authenticated user
+        
+        // Simulate Windows Authentication for demo
+        // In production, this would be replaced with a real API call
+        // that returns the authenticated Windows user from your backend
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Mock authenticated user based on Windows credentials
+        const windowsUser: User = {
+          id: "user-windows-1",
+          name: "Windows User",
+          email: "windows.user@company.com",
+          employeeId: "EMP001",
+          department: "Engineering",
+          team: "Frontend",
+          isAdmin: true
+        };
+        
+        setUser(windowsUser);
+        toast.success("Windows Authentication successful");
       } catch (error) {
-        console.error("Failed to parse stored user", error);
-        localStorage.removeItem("retroUser");
+        console.error("Windows Authentication failed:", error);
+        toast.error("Authentication failed. Please contact your administrator.");
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+    
+    fetchCurrentUser();
   }, []);
-
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // In a real app, this would be an API call
-      // Mock login with hardcoded users for demo
-      const adminUser: User = {
-        id: "admin-1",
-        name: "Admin User",
-        email: "admin@example.com",
-        employeeId: "ADMIN001",
-        department: "Management",
-        team: "Leadership",
-        isAdmin: true
-      };
-      
-      const regularUser: User = {
-        id: "user-1",
-        name: "Regular User",
-        email: "user@example.com",
-        employeeId: "EMP001",
-        department: "Engineering",
-        team: "Frontend",
-        isAdmin: false
-      };
-
-      // Basic validation
-      if (!email || !password) {
-        throw new Error("Email and password are required");
-      }
-
-      // Mock authentication logic
-      let authenticatedUser = null;
-      if (email === "admin@example.com" && password === "admin123") {
-        authenticatedUser = adminUser;
-      } else if (email === "user@example.com" && password === "user123") {
-        authenticatedUser = regularUser;
-      } else {
-        throw new Error("Invalid credentials");
-      }
-
-      if (!authenticatedUser) {
-        throw new Error("Authentication failed");
-      }
-
-      // Store user in local storage
-      localStorage.setItem("retroUser", JSON.stringify(authenticatedUser));
-      localStorage.setItem("retroToken", "mock-jwt-token-" + authenticatedUser.id);
-      
-      setUser(authenticatedUser);
-      toast.success("Login successful!");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Login failed");
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("retroUser");
-    localStorage.removeItem("retroToken");
-    setUser(null);
-    toast.success("Logged out successfully");
-  };
 
   const registerUser = async (userData: RegisterUserData) => {
     setIsLoading(true);
@@ -132,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Only admins can register new users");
       }
 
-      // In a real app, this would be an API call
+      // In a real app, this would be an API call to register the user
       // Mock user registration
       const newUser: User = {
         id: `user-${Date.now()}`,
@@ -147,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // In a real app, the new user would be stored in the database
       console.log("Registered new user:", newUser);
       
       toast.success("User registered successfully!");
@@ -159,15 +113,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const logout = () => {
+    // In a Windows Authentication setup, this would typically redirect to a logout endpoint
+    // For our demo, we'll just clear the user state
+    setUser(null);
+    toast.success("Logged out successfully");
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
         isLoading,
-        login,
-        logout,
-        registerUser
+        registerUser,
+        logout
       }}
     >
       {children}

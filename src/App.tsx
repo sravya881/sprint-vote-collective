@@ -5,23 +5,34 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SprintDetail from "./pages/SprintDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Loading component for Windows Authentication
+const LoadingAuth = () => {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+        <p className="text-lg font-medium">Authenticating with Windows credentials...</p>
+      </div>
+    </div>
+  );
+};
+
 // Route guard for protected routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <LoadingAuth />;
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <NotFound />;
   }
   
   return <>{children}</>;
@@ -30,7 +41,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={

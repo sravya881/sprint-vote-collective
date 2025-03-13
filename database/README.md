@@ -33,6 +33,15 @@ This documentation provides an overview of the database schema for the Sprint Re
 - Implements the voting system by linking users to cards they voted for
 - Has a unique constraint to ensure a user can only vote once per card
 
+## Windows Authentication Integration
+
+The database schema is designed to work with Windows Authentication:
+
+1. Users are authenticated via their Windows credentials
+2. The `windows_username` field in the `users` table stores the Windows username (e.g., "DOMAIN\\username")
+3. When a user accesses the application, their Windows identity is matched against the `windows_username` field
+4. No passwords are stored in the database, as authentication is handled by Windows
+
 ## Views
 
 ### view_card_details
@@ -62,12 +71,22 @@ The schema includes several utility functions:
 2. Run the `schema.sql` script to create the tables, views, and functions
 3. Run the `seed.sql` script to populate the database with sample data
 
+### Windows Authentication Configuration
+1. Ensure your .NET backend is configured to use Windows Authentication
+2. Configure your database connection to use integrated security
+3. Map incoming Windows identities to the `windows_username` field in the `users` table
+
 ### Sample Queries
+
+#### Get user details from Windows username
+```sql
+SELECT * FROM users WHERE windows_username = 'DOMAIN\\username';
+```
 
 #### Get all sprint boards for a user's team
 ```sql
 SELECT * FROM view_sprint_boards 
-WHERE team_id = (SELECT team_id FROM users WHERE windows_username = 'current_windows_username');
+WHERE team_id = (SELECT team_id FROM users WHERE windows_username = 'DOMAIN\\username');
 ```
 
 #### Get all cards for a specific sprint board
